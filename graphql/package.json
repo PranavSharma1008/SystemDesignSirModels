@@ -1,0 +1,16 @@
+{
+  "name": "graphql-model",
+  "version": "1.0.0",
+  "description": "Interactive GraphQL Working Model demonstrating Declarative Data Fetching for Semester 5 Distributed Systems",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": ["graphql", "ast", "resolvers", "overfetching", "distributed-systems"],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "graphql": "^16.12.0"
+  }
+}

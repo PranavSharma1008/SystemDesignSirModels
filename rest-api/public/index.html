@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>REST API Working Model (RFC 9110)</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+
+    <!-- Top Protocol Switcher -->
+    <nav class="model-nav">
+      <span>SD Models:</span>
+      <a href="http://localhost:4000" title="WebSocket Model">⚡ WebSockets :4000</a>
+      <a href="http://localhost:5000" class="active" title="REST API Model">🌐 REST API :5000</a>
+      <a href="http://localhost:5001" title="GraphQL Model">◈ GraphQL :5001</a>
+      <a href="http://localhost:5002" title="gRPC Model">⚡ gRPC :5002</a>
+    </nav>
+
+    <!-- Top Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="logo-icon">🌐</div>
+        <div>
+          <h1>REST API Working Model</h1>
+          <p class="subtitle">RFC 9110 HTTP/1.1 & HTTP/2 Resource-Oriented Architecture</p>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="status-pill" id="statusPill">
+          <span class="status-dot"></span>
+          <span>HTTP READY :5000</span>
+        </div>
+        <div class="metric-pill">
+          <span class="metric-label">Last Latency:</span>
+          <span class="metric-val" id="latencyBadge">-- ms</span>
+        </div>
+        <div class="metric-pill">
+          <span class="metric-label">Resources:</span>
+          <span class="metric-val" id="resourceCountBadge">5</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- 3-Column Dashboard -->
+    <main class="dashboard-grid">
+
+      <!-- Column 1: HTTP Request Builder -->
+      <section class="card">
+        <div class="card-header">
+          <h2>1. HTTP Request Builder</h2>
+          <span class="badge-tag tag-get" id="selectedMethodTag">GET</span>
+        </div>
+
+        <div class="card-body">
+          <div class="field-group">
+            <label>HTTP Method</label>
+            <div class="method-select-bar">
+              <button class="method-btn active" data-method="GET">GET</button>
+              <button class="method-btn" data-method="POST">POST</button>
+              <button class="method-btn" data-method="PUT">PUT</button>
+              <button class="method-btn" data-method="PATCH">PATCH</button>
+              <button class="method-btn" data-method="DELETE">DELETE</button>
+            </div>
+            <p class="field-hint" id="methodHint">GET is <strong>Safe</strong> and <strong>Idempotent</strong>. Fetches data without modifying state.</p>
+          </div>
+
+          <div class="field-group">
+            <label>Endpoint URL</label>
+            <div class="url-input-box">
+              <input type="text" id="endpointInput" class="input-text" value="/api/products">
+              <button id="btnSendRequest" class="btn btn-primary">Send</button>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label>Custom Request Headers (Key: Value per line)</label>
+            <textarea id="headersInput" class="input-area" rows="2" placeholder="Accept: application/json&#10;If-None-Match: *"></textarea>
+          </div>
+
+          <div class="field-group" id="bodyGroup" style="display: none;">
+            <label>Request Body (JSON)</label>
+            <textarea id="bodyInput" class="input-area" rows="4" placeholder='{"name": "New Server", "price": 49.99, "category": "Infra", "stock": 50}'></textarea>
+          </div>
+
+          <div class="field-group">
+            <label>Quick Presets</label>
+            <div class="quick-chips">
+              <button class="chip" data-preset="list">List All (GET)</button>
+              <button class="chip" data-preset="filter">Filter Infra (GET ?category=...)</button>
+              <button class="chip" data-preset="create">Create Product (POST 201)</button>
+              <button class="chip" data-preset="update">Update Price (PATCH)</button>
+              <button class="chip" data-preset="replace">Full Replace (PUT)</button>
+              <button class="chip" data-preset="notfound">Trigger 404 (GET /api/unknown)</button>
+              <button class="chip" data-preset="etag">Conditional ETag (304 Not Modified)</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Column 2: In-Memory Database Playground -->
+      <section class="card">
+        <div class="card-header">
+          <h2>2. Server Resources (/api/products)</h2>
+          <div style="display: flex; gap: 0.5rem;">
+            <button id="btnRefreshDb" class="btn btn-secondary btn-sm">Refresh</button>
+            <button id="btnResetDb" class="btn btn-ghost btn-sm" title="Reset dataset">Reset DB</button>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <p class="field-hint">💡 Below is the live in-memory database managed by this REST server. Click actions or use Column 1 to execute real HTTP methods.</p>
+
+          <div class="resource-table-container">
+            <table class="resource-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>Category</th>
+                  <th>Price</th>
+                  <th>Stock</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="productsTableBody">
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="field-group" style="margin-top: 0.5rem;">
+            <label>Quick Create Resource Form</label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+              <input type="text" id="quickName" class="input-text" placeholder="Product name...">
+              <input type="number" id="quickPrice" class="input-text" placeholder="Price ($)..." step="0.01">
+            </div>
+            <div style="display: flex; gap: 0.5rem; margin-top: 0.25rem;">
+              <input type="text" id="quickCat" class="input-text" placeholder="Category (e.g. Storage)">
+              <button id="btnQuickCreate" class="btn btn-primary" style="white-space: nowrap;">+ POST Item</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Column 3: Live Wire & Frame Inspector -->
+      <section class="card">
+        <div class="card-header">
+          <h2>3. Wire & Network Inspector</h2>
+          <button id="btnClearLogs" class="btn btn-ghost btn-sm">Clear</button>
+        </div>
+
+        <div class="card-body">
+          <div class="field-group">
+            <label>Last HTTP Response Wireframe</label>
+            <div class="wire-box" id="lastWireBox">// Send a request to inspect raw HTTP/1.1 wire framing...</div>
+          </div>
+
+          <div class="field-group">
+            <label>Request / Response Activity Log</label>
+            <div class="log-stream" id="logStream">
+              <!-- Logs injected here -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <div>
+        <strong>Semester 5 Distributed Systems:</strong> REST Model (RFC 9110) • Stateless, Cacheable, Uniform Interface
+      </div>
+      <div>
+        Running on Port <strong>5000</strong>
+      </div>
+    </footer>
+
+  </div>
+
+  <script src="client.js"></script>
+</body>
+</html>

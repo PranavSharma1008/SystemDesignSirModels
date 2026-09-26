@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GraphQL Working Model (Declarative Data Fetching)</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+
+    <!-- Top Protocol Switcher -->
+    <nav class="model-nav">
+      <span>SD Models:</span>
+      <a href="http://localhost:4000" title="WebSocket Model">⚡ WebSockets :4000</a>
+      <a href="http://localhost:5000" title="REST API Model">🌐 REST API :5000</a>
+      <a href="http://localhost:5001" class="active" title="GraphQL Model">◈ GraphQL :5001</a>
+      <a href="http://localhost:5002" title="gRPC Model">⚡ gRPC :5002</a>
+    </nav>
+
+    <!-- Top Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="logo-icon">◈</div>
+        <div>
+          <h1>GraphQL Working Model</h1>
+          <p class="subtitle">Declarative Query Language & Hierarchical AST Execution</p>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="status-pill" id="statusPill">
+          <span class="status-dot"></span>
+          <span>GRAPHQL ACTIVE :5001</span>
+        </div>
+        <div class="metric-pill">
+          <span class="metric-label">AST Execution:</span>
+          <span class="metric-val" id="latencyBadge">-- ms</span>
+        </div>
+        <div class="metric-pill">
+          <span class="metric-label">Resolvers Run:</span>
+          <span class="metric-val" id="resolverCountBadge">0</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- 3-Column Dashboard -->
+    <main class="dashboard-grid">
+
+      <!-- Column 1: Schema AST Explorer & Field Selector -->
+      <section class="card">
+        <div class="card-header">
+          <h2>1. Schema & Field Selector</h2>
+          <span class="chip" style="font-size: 0.7rem; color: var(--accent-pink);">Solves Over-fetching</span>
+        </div>
+
+        <div class="card-body">
+          <p class="field-hint">💡 In REST, you receive all 15 fields whether you want them or not. In GraphQL, you choose only the fields you need.</p>
+
+          <div class="field-group">
+            <label>Select Desired Fields (User #1)</label>
+            <div class="schema-tree" id="fieldSelectorTree">
+              <div class="tree-type">type User {</div>
+              <div class="tree-fields">
+                <label class="field-checkbox-row"><input type="checkbox" id="chkId" checked> <span>id: ID!</span></label>
+                <label class="field-checkbox-row"><input type="checkbox" id="chkName" checked> <span>name: String!</span></label>
+                <label class="field-checkbox-row"><input type="checkbox" id="chkRole"> <span>role: String!</span></label>
+                <label class="field-checkbox-row"><input type="checkbox" id="chkEmail"> <span>email: String!</span></label>
+                <label class="field-checkbox-row"><input type="checkbox" id="chkStatus"> <span>status: UserStatus!</span></label>
+                <label class="field-checkbox-row"><input type="checkbox" id="chkAvatar"> <span>avatar: String!</span></label>
+                <label class="field-checkbox-row"><input type="checkbox" id="chkPosts"> <span>posts { title, likes }</span></label>
+              </div>
+              <div class="tree-type">}</div>
+            </div>
+            <button id="btnApplyFields" class="btn btn-secondary btn-sm" style="margin-top: 0.25rem;">Generate Query from Selection</button>
+          </div>
+
+          <div class="field-group">
+            <label>Query Presets</label>
+            <div class="quick-chips">
+              <button class="chip" data-preset="overfetch">1. Avoid Over-fetching (Name only)</button>
+              <button class="chip" data-preset="underfetch">2. Avoid Under-fetching (User + Posts + Comments in 1 query!)</button>
+              <button class="chip" data-preset="mutation">3. Mutation: Create New Post</button>
+              <button class="chip" data-preset="like">4. Mutation: Like Post #101</button>
+              <button class="chip" data-preset="metrics">5. Query: Server Telemetry</button>
+              <button class="chip" data-preset="schema">6. Introspection: SDL Schema</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Column 2: Interactive GraphQL Studio -->
+      <section class="card">
+        <div class="card-header">
+          <h2>2. GraphQL Query Studio (POST /graphql)</h2>
+          <button id="btnExecute" class="btn btn-graphql btn-sm">▶ Execute</button>
+        </div>
+
+        <div class="card-body">
+          <div class="field-group">
+            <label>GraphQL Document (Query / Mutation)</label>
+            <textarea id="queryInput" class="input-area" rows="8" spellcheck="false"></textarea>
+          </div>
+
+          <div class="field-group">
+            <label>Query Variables (Optional JSON)</label>
+            <textarea id="variablesInput" class="input-area" rows="2" placeholder='{ "id": "1" }'></textarea>
+          </div>
+
+          <div class="field-group">
+            <label>Execution Result (data)</label>
+            <div class="wire-box" id="resultBox">// Click "Execute" to run query against Apollo GraphQL AST...</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Column 3: Payload Size Comparison & Network Log -->
+      <section class="card">
+        <div class="card-header">
+          <h2>3. Network & Payload Efficiency</h2>
+          <button id="btnClearLogs" class="btn btn-ghost btn-sm">Clear</button>
+        </div>
+
+        <div class="card-body">
+          <div class="comparison-box">
+            <div class="comparison-row">
+              <span style="color: var(--text-muted);">Equivalent REST Payload:</span>
+              <span id="restSizeLabel" style="color: var(--accent-amber);">~1,250 bytes</span>
+            </div>
+            <div class="comparison-row">
+              <span style="color: var(--text-muted);">GraphQL Filtered Payload:</span>
+              <span id="graphqlSizeLabel" style="color: var(--accent-pink); font-weight: bold;">-- bytes</span>
+            </div>
+            <div class="bar-bg">
+              <div class="bar-fill" id="bandwidthBar" style="width: 25%;"></div>
+            </div>
+            <div style="font-size: 0.75rem; color: var(--accent-green); text-align: right;" id="savingsText">
+              Bandwidth Saved: ~80%
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label>Under-the-Hood: Single HTTP POST Wireframe</label>
+            <div class="wire-box" id="wireDetailsBox" style="max-height: 140px; font-size: 0.75rem; color: #94a3b8;">// Shows raw POST /graphql body and Content-Type: application/json</div>
+          </div>
+
+          <div class="field-group">
+            <label>Query Execution History</label>
+            <div class="log-stream" id="logStream">
+              <!-- Logs injected here -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <div>
+        <strong>Semester 5 Distributed Systems:</strong> GraphQL Model • Typed Schema, Resolvers, Single Endpoint (`/graphql`)
+      </div>
+      <div>
+        Running on Port <strong>5001</strong>
+      </div>
+    </footer>
+
+  </div>
+
+  <script src="client.js"></script>
+</body>
+</html>

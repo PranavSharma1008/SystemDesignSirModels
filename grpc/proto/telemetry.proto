@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package telemetry;
+
+// Request to fetch general server stats
+message StatsRequest {
+  string client_id = 1;
+  bool include_hardware = 2;
+}
+
+// Structured response for system metrics
+message StatsResponse {
+  string server_id = 1;
+  int64 uptime_seconds = 2;
+  double cpu_utilization = 3;
+  int32 memory_used_mb = 4;
+  string cluster_region = 5;
+  string status = 6;
+}
+
+// Single telemetry measurement packet
+message MetricPacket {
+  string metric_name = 1;
+  double value = 2;
+  int64 timestamp = 3;
+  string source_node = 4;
+}
+
+// Summary received after client streams batch metrics
+message BatchSummary {
+  int32 total_packets = 1;
+  double average_value = 2;
+  double min_value = 3;
+  double max_value = 4;
+  int64 elapsed_ms = 5;
+  string status = 6;
+}
+
+// The 4 Core gRPC RPC Paradigms
+service TelemetryService {
+  // 1. Unary RPC: Single request -> Single response
+  rpc GetSystemStats (StatsRequest) returns (StatsResponse);
+
+  // 2. Server Streaming RPC: Single request -> Stream of responses
+  rpc StreamMetrics (StatsRequest) returns (stream MetricPacket);
+
+  // 3. Client Streaming RPC: Stream of requests -> Single summary response
+  rpc UploadBatchMetrics (stream MetricPacket) returns (BatchSummary);
+
+  // 4. Bidirectional Streaming RPC: Continuous full-duplex stream
+  rpc LiveChannel (stream MetricPacket) returns (stream MetricPacket);
+}

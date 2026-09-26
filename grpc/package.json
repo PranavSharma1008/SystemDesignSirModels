@@ -1,0 +1,16 @@
+{
+  "name": "grpc-model",
+  "version": "1.0.0",
+  "description": "Interactive gRPC & Protocol Buffers Working Model (HTTP/2 RPC) for Semester 5 Distributed Systems",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": ["grpc", "protobuf", "http2", "rpc", "binary-serialization", "distributed-systems"],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "protobufjs": "^7.5.4"
+  }
+}

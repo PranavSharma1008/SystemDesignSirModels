@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>gRPC & Protocol Buffers Working Model (HTTP/2 RPC)</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+
+    <!-- Top Protocol Switcher -->
+    <nav class="model-nav">
+      <span>SD Models:</span>
+      <a href="http://localhost:4000" title="WebSocket Model">⚡ WebSockets :4000</a>
+      <a href="http://localhost:5000" title="REST API Model">🌐 REST API :5000</a>
+      <a href="http://localhost:5001" title="GraphQL Model">◈ GraphQL :5001</a>
+      <a href="http://localhost:5002" class="active" title="gRPC Model">⚡ gRPC :5002</a>
+    </nav>
+
+    <!-- Top Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="logo-icon">⚡</div>
+        <div>
+          <h1>gRPC & Protocol Buffers Working Model</h1>
+          <p class="subtitle">HTTP/2 Multiplexed High-Performance Remote Procedure Calls (RPC)</p>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="status-pill" id="statusPill">
+          <span class="status-dot"></span>
+          <span>gRPC ACTIVE :5002</span>
+        </div>
+        <div class="metric-pill">
+          <span class="metric-label">Unary RTT:</span>
+          <span class="metric-val" id="latencyBadge">-- ms</span>
+        </div>
+        <div class="metric-pill">
+          <span class="metric-label">Protobuf Savings:</span>
+          <span class="metric-val" id="savingsBadge">~80%</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- 3-Column Dashboard -->
+    <main class="dashboard-grid">
+
+      <!-- Column 1: Proto Schema & Binary Hex Inspector -->
+      <section class="card">
+        <div class="card-header">
+          <h2>1. Protobuf Contract & Binary Wire</h2>
+          <span class="chip" style="font-size: 0.7rem; color: var(--accent-cyan);">proto3 IDL</span>
+        </div>
+
+        <div class="card-body">
+          <div class="field-group">
+            <label>Interface Definition Language (telemetry.proto)</label>
+            <div class="proto-box" id="protoBox">// Loading .proto schema...</div>
+          </div>
+
+          <div class="field-group">
+            <label>Serialized Protobuf Binary (Hex Dump)</label>
+            <div class="binary-box" id="hexDumpBox">// Trigger an RPC method to inspect raw binary bytes...</div>
+            <p class="field-hint">💡 Protocol Buffers encode fields using Tag-Length-Value (TLV) and variable-length zigzag integers (varints), drastically reducing payload byte size compared to textual JSON.</p>
+          </div>
+
+          <div class="field-group">
+            <label>Wire Size Comparison</label>
+            <div style="background: #090d16; padding: 0.6rem; border-radius: 6px; border: 1px solid var(--border-color); font-family: var(--font-mono); font-size: 0.78rem;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                <span style="color: var(--text-muted);">JSON payload size:</span>
+                <span id="jsonBytesLabel" style="color: var(--accent-amber);">185 bytes</span>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span style="color: var(--text-muted);">Protobuf binary size:</span>
+                <span id="protoBytesLabel" style="color: var(--accent-cyan); font-weight: bold;">38 bytes</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Column 2: The 4 gRPC Communication Paradigms -->
+      <section class="card">
+        <div class="card-header">
+          <h2>2. The 4 gRPC RPC Paradigms</h2>
+          <button id="btnTriggerRpc" class="btn btn-cyan btn-sm">Invoke RPC</button>
+        </div>
+
+        <div class="card-body">
+          <div class="field-group">
+            <label>Select RPC Communication Pattern</label>
+            <div class="rpc-selector-grid">
+              <button class="rpc-mode-btn active" data-mode="unary">
+                <span class="rpc-mode-title">1. Unary RPC</span>
+                <span class="rpc-mode-desc">1 Request ➔ 1 Response</span>
+              </button>
+              <button class="rpc-mode-btn" data-mode="server-stream">
+                <span class="rpc-mode-title">2. Server Stream</span>
+                <span class="rpc-mode-desc">1 Request ➔ Stream Packets</span>
+              </button>
+              <button class="rpc-mode-btn" data-mode="client-stream">
+                <span class="rpc-mode-title">3. Client Stream</span>
+                <span class="rpc-mode-desc">Stream Packets ➔ 1 Summary</span>
+              </button>
+              <button class="rpc-mode-btn" data-mode="bidi-stream">
+                <span class="rpc-mode-title">4. Bidirectional</span>
+                <span class="rpc-mode-desc">Dual Concurrent Streams</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label>RPC Invocation Output</label>
+            <div class="wire-box" id="rpcOutputBox">// Click "Invoke RPC" to execute selected gRPC method...</div>
+          </div>
+
+          <div class="field-group">
+            <label>gRPC Response Status & Trailers</label>
+            <div style="background: #090d16; padding: 0.6rem; border-radius: 6px; border: 1px solid var(--border-color); font-family: var(--font-mono); font-size: 0.75rem;">
+              <div style="display: flex; justify-content: space-between;">
+                <span>grpc-status:</span>
+                <span id="trailerStatus" style="color: var(--accent-green); font-weight: bold;">0 (OK)</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; margin-top: 0.2rem;">
+                <span>grpc-message:</span>
+                <span id="trailerMsg" style="color: #cbd5e1;">OK</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Column 3: HTTP/2 Streams & Frame Multiplexing Log -->
+      <section class="card">
+        <div class="card-header">
+          <h2>3. HTTP/2 Framing & Event Log</h2>
+          <button id="btnClearLogs" class="btn btn-ghost btn-sm">Clear</button>
+        </div>
+
+        <div class="card-body">
+          <div class="field-group">
+            <label>Simulated HTTP/2 Multiplexed Frames</label>
+            <div class="wire-box" id="h2FrameBox" style="max-height: 140px; font-size: 0.75rem; color: #a5f3fc;">// Shows HTTP/2 HEADERS, DATA, and Trailer frames</div>
+          </div>
+
+          <div class="field-group">
+            <label>RPC Execution Stream</label>
+            <div class="log-stream" id="logStream">
+              <!-- Logs injected here -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <div>
+        <strong>Semester 5 Distributed Systems:</strong> gRPC Model • Protocol Buffers (proto3), HTTP/2 Multiplexing, 4 Streaming Paradigms
+      </div>
+      <div>
+        Running on Port <strong>5002</strong>
+      </div>
+    </footer>
+
+  </div>
+
+  <script src="client.js"></script>
+</body>
+</html>

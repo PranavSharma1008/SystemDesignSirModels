@@ -1,0 +1,12 @@
+{
+  "name": "rest-api-model",
+  "version": "1.0.0",
+  "description": "Interactive REST API Working Model (RFC 9110) for Semester 5 Distributed Systems",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": ["rest", "api", "http", "crud", "distributed-systems"],
+  "author": "",
+  "license": "ISC"
+}
