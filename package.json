@@ -1,0 +1,26 @@
+{
+  "name": "system-design-models",
+  "version": "1.0.0",
+  "description": "Interactive Working Models for Distributed Systems & Network Architectures (REST, GraphQL, gRPC, WebSockets)",
+  "scripts": {
+    "install:all": "npm --prefix graphql install && npm --prefix grpc install && npm --prefix websockets install",
+    "start:rest": "node rest-api/server.js",
+    "start:graphql": "node graphql/server.js",
+    "start:grpc": "node grpc/server.js",
+    "start:ws": "node websockets/server.js"
+  },
+  "keywords": [
+    "distributed-systems",
+    "system-design",
+    "rest-api",
+    "graphql",
+    "grpc",
+    "protobuf",
+    "websockets",
+    "http2",
+    "rfc6455",
+    "rfc9110"
+  ],
+  "author": "Pranav Sharma",
+  "license": "ISC"
+}
